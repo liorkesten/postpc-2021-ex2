@@ -1,5 +1,8 @@
 package android.exercise.mini.calculator.app;
 
+import android.text.TextUtils;
+
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -7,11 +10,17 @@ import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+
 public class SimpleCalculatorImpl implements SimpleCalculator {
   private static final Set<String> OPERATORS = new HashSet<String>() {{
     add("+");
     add("_");
   }};
+  //Engine for eval function
+  private static final ScriptEngine engine = new ScriptEngineManager().getEngineByName("js");
+
   private final List<String> history = new ArrayList<>();
   private final List<Integer> equalsIndexes = new Stack<>();
   private final List<Integer> lastCalculatedNumber = new Stack<>();
@@ -23,7 +32,7 @@ public class SimpleCalculatorImpl implements SimpleCalculator {
   @Override
   public String output() {
     // todo: return output based on the current state
-    StringBuilder curr = new StringBuilder(lastCalculatedNumber.get(lastCalculatedNumber.size() - 1));
+    StringBuilder curr =  new StringBuilder(lastCalculatedNumber.get(lastCalculatedNumber.size()-1).toString());
     for (int i = equalsIndexes.get(equalsIndexes.size()-1); i < history.size(); ++i){
       curr.append(history.get(i));
     }
@@ -55,7 +64,17 @@ public class SimpleCalculatorImpl implements SimpleCalculator {
     if (isLastItemInHistoryIsOperator()){
       history.remove(history.size()-1);
     }
-    //TODO Implement
+    StringBuilder formula = new StringBuilder();
+    for (int i =0; i<history.size(); ++i){
+      formula.append(history.get(i));
+    }
+    try{
+      lastCalculatedNumber.add(((Double) engine.eval(formula.toString())).intValue());
+      equalsIndexes.add(history.size());
+    }
+    catch (Exception e){
+      System.out.println(e.getMessage());
+    }
   }
 
   @Override
@@ -66,6 +85,9 @@ public class SimpleCalculatorImpl implements SimpleCalculator {
     //  if input was "12+" and called `deleteLast()`, then delete the "+"
     //  if no input was given, then there is nothing to do here
     if (!isEmpty()){
+      history.remove(history.size()-1);
+    }
+    if(isLastItemInHistoryIsOperator() || isLastItemInHistoryIsDigit()){
       history.remove(history.size()-1);
     }
   }
@@ -79,8 +101,8 @@ public class SimpleCalculatorImpl implements SimpleCalculator {
     lastCalculatedNumber.clear();
     // Add Dummies
     history.add("0");
-    equalsIndexes.add(0);
     lastCalculatedNumber.add(0);
+    equalsIndexes.add(1);
 
   }
 
@@ -111,6 +133,13 @@ public class SimpleCalculatorImpl implements SimpleCalculator {
     return false;
   }
 
+  private boolean isLastItemInHistoryIsDigit(){
+    if (!isEmpty() && TextUtils.isDigitsOnly(history.get(history.size() - 1))){
+      return true;
+    }
+    return false;
+  }
+
   private void insertOperator(String operator){
     if (!isLastItemInHistoryIsOperator()){
       history.add(operator);
@@ -126,5 +155,9 @@ public class SimpleCalculatorImpl implements SimpleCalculator {
     - ArrayList<> where the type is a primitive or a String
     - HashMap<> where the types are primitives or a String
      */
+    //TODO Ask Ream if this class should not be static - how can you state static class?
+//    private final List<String> historyState = new ArrayList<>(history);
+    private final List<Integer> equalsIndexesState = new Stack<>();
+    private final List<Integer> lastCalculatedNumberState = new Stack<>();
   }
 }

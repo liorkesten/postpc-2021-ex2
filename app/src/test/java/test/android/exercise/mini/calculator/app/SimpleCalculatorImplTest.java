@@ -2,12 +2,14 @@ package test.android.exercise.mini.calculator.app;
 
 import android.exercise.mini.calculator.app.SimpleCalculatorImpl;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.Serializable;
 
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class SimpleCalculatorImplTest {
 
@@ -29,7 +31,7 @@ public class SimpleCalculatorImplTest {
   public void when_inputIsMinus_then_outputShouldBeCorrect(){
     SimpleCalculatorImpl calculatorUnderTest = new SimpleCalculatorImpl();
     calculatorUnderTest.insertMinus();
-    String expected = "???"; // TODO: decide the expected output when having a single minus
+    String expected = "0-"; // TODO: decide the expected output when having a single minus
     assertEquals(expected, calculatorUnderTest.output());
   }
 
@@ -84,6 +86,16 @@ public class SimpleCalculatorImplTest {
     //  you can get inspiration from the test method `when_savingState_should_loadThatStateCorrectly()`
   }
 
+  @Test
+  public void when_addFormulaAndThenEqual_should_one_number(){
+    SimpleCalculatorImpl calculator = new SimpleCalculatorImpl();
+    calculator.insertDigit(2);
+    calculator.insertPlus();
+    calculator.insertDigit(3);
+    calculator.insertEquals();
+
+    assertEquals("5",calculator.output());
+  }
   // TODO:
   //  the existing tests are not enough since they only test simple use-cases with small inputs.
   //  write at least 10 methods to test correct behavior with complicated inputs or use-cases.
