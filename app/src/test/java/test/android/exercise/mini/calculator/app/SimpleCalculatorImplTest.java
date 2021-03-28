@@ -13,33 +13,35 @@ import static org.junit.Assert.assertEquals;
 
 public class SimpleCalculatorImplTest {
 
+  private SimpleCalculatorImpl calculator;
+  @Before
+  public void setupBeforeEachTest(){
+    calculator = new SimpleCalculatorImpl();
+  }
+
   @Test
   public void when_noInputGiven_then_outputShouldBe0(){
-    SimpleCalculatorImpl calculatorUnderTest = new SimpleCalculatorImpl();
-    assertEquals("0", calculatorUnderTest.output());
+    assertEquals("0", calculator.output());
   }
 
   @Test
   public void when_inputIsPlus_then_outputShouldBe0Plus(){
-    SimpleCalculatorImpl calculatorUnderTest = new SimpleCalculatorImpl();
-    calculatorUnderTest.insertPlus();
-    assertEquals("0+", calculatorUnderTest.output());
+    calculator.insertPlus();
+    assertEquals("0+", calculator.output());
   }
 
 
   @Test
   public void when_inputIsMinus_then_outputShouldBeCorrect(){
-    SimpleCalculatorImpl calculatorUnderTest = new SimpleCalculatorImpl();
-    calculatorUnderTest.insertMinus();
-    String expected = "0-"; // TODO: decide the expected output when having a single minus
-    assertEquals(expected, calculatorUnderTest.output());
+    calculator.insertMinus();
+    String expected = "0-";
+    assertEquals(expected, calculator.output());
   }
 
   @Test
   public void when_callingInsertDigitWithIllegalNumber_then_exceptionShouldBeThrown(){
-    SimpleCalculatorImpl calculatorUnderTest = new SimpleCalculatorImpl();
     try {
-      calculatorUnderTest.insertDigit(357);
+      calculator.insertDigit(357);
       fail("should throw an exception and not reach this line");
     } catch (RuntimeException e) {
       // good :)
@@ -49,33 +51,39 @@ public class SimpleCalculatorImplTest {
 
   @Test
   public void when_callingDeleteLast_then_lastOutputShouldBeDeleted(){
-    // todo: implement test
+    calculator.insertDigit(4);
+    calculator.deleteLast();
+    assertEquals("0",calculator.output());
   }
 
   @Test
   public void when_callingClear_then_outputShouldBeCleared(){
-    // todo: implement test
+    calculator.insertDigit(4);
+    calculator.insertPlus();
+    calculator.insertDigit(2);
+    calculator.clear();
+
+    assertEquals("0",calculator.output());
   }
 
   @Test
   public void when_savingState_should_loadThatStateCorrectly(){
-    SimpleCalculatorImpl calculatorUnderTest = new SimpleCalculatorImpl();
     // give some input
-    calculatorUnderTest.insertDigit(5);
-    calculatorUnderTest.insertPlus();
-    calculatorUnderTest.insertDigit(7);
+    calculator.insertDigit(5);
+    calculator.insertPlus();
+    calculator.insertDigit(7);
 
     // save current state
-    Serializable savedState = calculatorUnderTest.saveState();
+    Serializable savedState = calculator.saveState();
     assertNotNull(savedState);
 
     // call `clear` and make sure calculator cleared
-    calculatorUnderTest.clear();
-    assertEquals("0", calculatorUnderTest.output());
+    calculator.clear();
+    assertEquals("0", calculator.output());
 
     // load the saved state and make sure state was loaded correctly
-    calculatorUnderTest.loadState(savedState);
-    assertEquals("5+7", calculatorUnderTest.output());
+    calculator.loadState(savedState);
+    assertEquals("5+7", calculator.output());
   }
 
   @Test
@@ -86,16 +94,7 @@ public class SimpleCalculatorImplTest {
     //  you can get inspiration from the test method `when_savingState_should_loadThatStateCorrectly()`
   }
 
-  @Test
-  public void when_addFormulaAndThenEqual_should_one_number(){
-    SimpleCalculatorImpl calculator = new SimpleCalculatorImpl();
-    calculator.insertDigit(2);
-    calculator.insertPlus();
-    calculator.insertDigit(3);
-    calculator.insertEquals();
 
-    assertEquals("5",calculator.output());
-  }
   // TODO:
   //  the existing tests are not enough since they only test simple use-cases with small inputs.
   //  write at least 10 methods to test correct behavior with complicated inputs or use-cases.
@@ -107,4 +106,102 @@ public class SimpleCalculatorImplTest {
   //  - with 2 calculators, give them different inputs, then save state on first calculator and load the state into second calculator, make sure state loaded well
   //  etc etc.
   //  feel free to be creative in your tests!
+
+  @Test
+  public void when_evaluteAndThenAddNegativeNumber_should_sumOfTwoNegatives(){
+    calculator.insertDigit(9);
+    calculator.insertDigit(9);
+    calculator.insertDigit(9);
+    calculator.insertMinus();
+    calculator.insertDigit(8);
+    calculator.insertDigit(8);
+    calculator.insertDigit(8);
+    calculator.insertMinus();
+    calculator.insertDigit(2);
+    calculator.insertDigit(2);
+    calculator.insertDigit(2);
+    calculator.insertEquals();
+    calculator.insertMinus();
+    calculator.insertDigit(3);
+    calculator.insertDigit(3);
+    calculator.insertDigit(3);
+
+    assertEquals("-111-333",calculator.output());
+  }
+  @Test
+  public void when_addFormulaAndThenEqual_should_one_number(){
+    calculator.insertDigit(2);
+    calculator.insertPlus();
+    calculator.insertDigit(3);
+    calculator.insertEquals();
+
+    assertEquals("5",calculator.output());
+  }
+
+  @Test
+  public void when_addTwoPluses_shouldNot_addSecondPlus(){
+    calculator.insertDigit(2);
+    calculator.insertPlus();
+    calculator.insertPlus();
+
+    assertEquals("2+",calculator.output());
+  }
+
+
+  @Test
+  public void when_addMinusAfterPlus_shouldNot_addPlus(){
+    calculator.insertDigit(2);
+    calculator.insertPlus();
+    calculator.insertMinus();
+
+    assertEquals("2+",calculator.output());
+  }
+
+
+  @Test
+  public void when_addEqualAfterPlus_shouldNot_containPlus(){
+    calculator.insertDigit(2);
+    calculator.insertPlus();
+    calculator.insertEquals();
+
+    assertEquals("2",calculator.output());
+  }
+
+  @Test
+  public void when_addEqualAfterMinus_shouldNot_containMinus(){
+    calculator.insertDigit(2);
+    calculator.insertMinus();
+    calculator.insertEquals();
+
+    assertEquals("2",calculator.output());
+  }
+
+
+  @Test
+  public void when_deleteLastTwiceInRow_should_deleteLastTwoItems(){
+    calculator.insertDigit(1);
+    calculator.insertMinus();
+    calculator.insertDigit(3);
+    calculator.insertDigit(3);
+    calculator.deleteLast();
+    calculator.deleteLast();
+
+    assertEquals("1-",calculator.output());
+  }
+
+  @Test
+  public void when_deleteLastInMidOfFormula_should_deleteMidDigit(){
+    calculator.insertDigit(5);
+    calculator.insertPlus();
+    calculator.insertDigit(7);
+    calculator.insertMinus();
+    calculator.insertDigit(1);
+    calculator.insertDigit(3);
+    calculator.deleteLast();
+    calculator.insertDigit(2);
+    calculator.insertDigit(5);
+
+    assertEquals("5+7-125",calculator.output());
+  }
+
 }

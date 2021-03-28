@@ -24,6 +24,7 @@ public class SimpleCalculatorImpl implements SimpleCalculator {
   private final List<String> history = new ArrayList<>();
   private final List<Integer> equalsIndexes = new Stack<>();
   private final List<Integer> lastCalculatedNumber = new Stack<>();
+  private boolean isAlreadyCalculated = false;
   // todo: add fields as needed
   public SimpleCalculatorImpl(){
     //Dummy:
@@ -32,7 +33,9 @@ public class SimpleCalculatorImpl implements SimpleCalculator {
   @Override
   public String output() {
     // todo: return output based on the current state
-    StringBuilder curr =  new StringBuilder(lastCalculatedNumber.get(lastCalculatedNumber.size()-1).toString());
+    StringBuilder curr = (isAlreadyCalculated) ?
+            new StringBuilder(lastCalculatedNumber.get(lastCalculatedNumber.size()-1).toString()) :
+            new StringBuilder("");
     for (int i = equalsIndexes.get(equalsIndexes.size()-1); i < history.size(); ++i){
       curr.append(history.get(i));
     }
@@ -43,6 +46,10 @@ public class SimpleCalculatorImpl implements SimpleCalculator {
   public void insertDigit(int digit) {
     if (digit < 0 || digit >9){
       throw new IllegalArgumentException("Digit must be between 0-9");
+    }
+    if (isEmpty()){
+      // Change first item to empty string to prevent case of "02+4" --> "2+4"
+      history.set(0,"");
     }
     history.add(String.valueOf(digit));
   }
@@ -69,8 +76,9 @@ public class SimpleCalculatorImpl implements SimpleCalculator {
       formula.append(history.get(i));
     }
     try{
-      lastCalculatedNumber.add(((Double) engine.eval(formula.toString())).intValue());
+      lastCalculatedNumber.add(((Number) engine.eval(formula.toString())).intValue());
       equalsIndexes.add(history.size());
+      isAlreadyCalculated = true;
     }
     catch (Exception e){
       System.out.println(e.getMessage());
@@ -87,8 +95,12 @@ public class SimpleCalculatorImpl implements SimpleCalculator {
     if (!isEmpty()){
       history.remove(history.size()-1);
     }
-    if(isLastItemInHistoryIsOperator() || isLastItemInHistoryIsDigit()){
+    else if(isLastItemInHistoryIsOperator() || isLastItemInHistoryIsDigit()){
       history.remove(history.size()-1);
+    }
+    //Reset the first item in case there is only zero
+    if (isEmpty()){
+      history.set(0,"0");
     }
   }
 
@@ -99,10 +111,11 @@ public class SimpleCalculatorImpl implements SimpleCalculator {
     history.clear();
     equalsIndexes.clear();
     lastCalculatedNumber.clear();
+    isAlreadyCalculated = false;
     // Add Dummies
     history.add("0");
     lastCalculatedNumber.add(0);
-    equalsIndexes.add(1);
+    equalsIndexes.add(0);
 
   }
 
