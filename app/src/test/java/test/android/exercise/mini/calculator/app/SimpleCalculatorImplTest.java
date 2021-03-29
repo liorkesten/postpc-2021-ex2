@@ -132,7 +132,7 @@ public class SimpleCalculatorImplTest {
     calculator.insertMinus();
     calculator.insertDigit(4);
 
-    assertEquals("-4",calculator.output());
+    assertEquals("0-4",calculator.output());
   }
   @Test
   public void when_evaluteAndThenAddNegativeNumber_should_sumOfTwoNegatives(){

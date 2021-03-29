@@ -121,7 +121,7 @@ public class AppFlowTest {
     )) {
       button.performClick();
     }
-    assertEquals("7", textViewOutput.getText().toString());
+    assertEquals("2", textViewOutput.getText().toString());
   }
 
   @Test

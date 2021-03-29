@@ -22,9 +22,7 @@ public class SimpleCalculatorImpl implements SimpleCalculator {
   private static final ScriptEngine engine = new ScriptEngineManager().getEngineByName("js");
 
   private List<String> history = new ArrayList<>();
-  private List<Integer> equalsIndexes = new Stack<>();
-  private List<Integer> lastCalculatedNumber = new Stack<>();
-  private boolean isAlreadyCalculated = false;
+  private String lastCalculatedNumber = "0";
   // todo: add fields as needed
   public SimpleCalculatorImpl(){
     //Dummy:
@@ -33,10 +31,9 @@ public class SimpleCalculatorImpl implements SimpleCalculator {
   @Override
   public String output() {
     // todo: return output based on the current state
-    StringBuilder curr = (isAlreadyCalculated) ?
-            new StringBuilder(lastCalculatedNumber.get(lastCalculatedNumber.size()-1).toString()) :
-            new StringBuilder("");
-    for (int i = equalsIndexes.get(equalsIndexes.size()-1); i < history.size(); ++i){
+    StringBuilder curr = new StringBuilder(lastCalculatedNumber);
+
+    for (int i = 0; i < history.size(); ++i){
       curr.append(history.get(i));
     }
     return curr.toString();
@@ -47,10 +44,10 @@ public class SimpleCalculatorImpl implements SimpleCalculator {
     if (digit < 0 || digit >9){
       throw new IllegalArgumentException("Digit must be between 0-9");
     }
-    if (isEmpty() || containsOnlyOperator()){
-      // Change first item to empty string to prevent case of "02+4" --> "2+4"
-      history.set(0,"");
+    if (isEmpty()){
+      lastCalculatedNumber = "";
     }
+
     history.add(String.valueOf(digit));
   }
 
@@ -71,14 +68,14 @@ public class SimpleCalculatorImpl implements SimpleCalculator {
     if (isLastItemInHistoryIsOperator()){
       history.remove(history.size()-1);
     }
+
     StringBuilder formula = new StringBuilder();
     for (int i =0; i<history.size(); ++i){
       formula.append(history.get(i));
     }
     try{
-      lastCalculatedNumber.add(((Number) engine.eval(formula.toString())).intValue());
-      equalsIndexes.add(history.size());
-      isAlreadyCalculated = true;
+      lastCalculatedNumber = String.valueOf(((Number) engine.eval(formula.toString())).intValue());
+      history.clear();
     }
     catch (Exception e){
       System.out.println(e.getMessage());
@@ -95,12 +92,8 @@ public class SimpleCalculatorImpl implements SimpleCalculator {
     if (!isEmpty()){
       history.remove(history.size()-1);
     }
-    else if(isLastItemInHistoryIsOperator() || isLastItemInHistoryIsDigit()){
-      history.remove(history.size()-1);
-    }
-    //Reset the first item in case there is only zero
     if (isEmpty()){
-      history.set(0,"0");
+      lastCalculatedNumber = "0";
     }
   }
 
@@ -109,24 +102,16 @@ public class SimpleCalculatorImpl implements SimpleCalculator {
     // todo: clear everything (same as no-input was never given)
     //Clear all
     history.clear();
-    equalsIndexes.clear();
-    lastCalculatedNumber.clear();
-    isAlreadyCalculated = false;
+    lastCalculatedNumber = "0";
     // Add Dummies
-    history.add("0");
-    lastCalculatedNumber.add(0);
-    equalsIndexes.add(0);
-
   }
 
   @Override
   public Serializable saveState() {
     CalculatorState state = new CalculatorState();
     // todo: insert all data to the state, so in the future we can load from this state
-    state.equalsIndexesState = new ArrayList<>(equalsIndexes);
-    state.lastCalculatedNumberState = new ArrayList<>(lastCalculatedNumber);
+    state.lastCalculatedNumberState = lastCalculatedNumber;
     state.historyState = new ArrayList<>(history);
-    state.isAlreadyCalculatedState = isAlreadyCalculated;
     return state;
   }
 
@@ -138,13 +123,11 @@ public class SimpleCalculatorImpl implements SimpleCalculator {
     CalculatorState casted = (CalculatorState) prevState;
     // todo: use the CalculatorState to load
     history = new ArrayList<>(casted.historyState);
-    lastCalculatedNumber = new ArrayList<>(casted.lastCalculatedNumberState);
-    equalsIndexes = new ArrayList<>(casted.equalsIndexesState);
-    isAlreadyCalculated = casted.isAlreadyCalculatedState;
+    lastCalculatedNumber =casted.lastCalculatedNumberState;
   }
 
   private boolean isEmpty(){
-    return history.size() == 1;
+    return history.isEmpty();
   }
 
   private boolean isLastItemInHistoryIsOperator(){
@@ -184,15 +167,10 @@ public class SimpleCalculatorImpl implements SimpleCalculator {
     - HashMap<> where the types are primitives or a String
      */
     private List<String> historyState;
-    private List<Integer> equalsIndexesState;
-    private List<Integer> lastCalculatedNumberState;
-    private boolean isAlreadyCalculatedState;
+    private String lastCalculatedNumberState;
 
     public CalculatorState(){
       historyState = new ArrayList<>();
-      equalsIndexesState = new Stack<>();
-      lastCalculatedNumberState = new Stack<>();
-      isAlreadyCalculatedState = false;
     }
   }
 }
