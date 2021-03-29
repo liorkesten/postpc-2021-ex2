@@ -90,8 +90,12 @@ public class SimpleCalculatorImplTest {
   public void when_savingStateFromFirstCalculator_should_loadStateCorrectlyFromSecondCalculator(){
     SimpleCalculatorImpl firstCalculator = new SimpleCalculatorImpl();
     SimpleCalculatorImpl secondCalculator = new SimpleCalculatorImpl();
-    // TODO: implement the test based on this method's name.
-    //  you can get inspiration from the test method `when_savingState_should_loadThatStateCorrectly()`
+    firstCalculator.insertDigit(4);
+    firstCalculator.insertPlus();
+    Serializable s = firstCalculator.saveState();
+    secondCalculator.loadState(s);
+
+    assertEquals("4+",secondCalculator.output());
   }
 
 
@@ -107,6 +111,29 @@ public class SimpleCalculatorImplTest {
   //  etc etc.
   //  feel free to be creative in your tests!
 
+  @Test
+  public void when_savingStateFromFirstCalcAndInsertDataToSecondCalc_should_containOnlyFirstCalcData(){
+    SimpleCalculatorImpl firstCalculator = new SimpleCalculatorImpl();
+    SimpleCalculatorImpl secondCalculator = new SimpleCalculatorImpl();
+    firstCalculator.insertDigit(4);
+    firstCalculator.insertPlus();
+    secondCalculator.insertDigit(3);
+    Serializable s = firstCalculator.saveState();
+    secondCalculator.loadState(s);
+
+    assertEquals("4+",secondCalculator.output());
+  }
+
+  @Test
+  public void when_addFewOperatorsAtTheBegging_should_ignoreThem(){
+    calculator.insertMinus();
+    calculator.insertPlus();
+    calculator.insertPlus();
+    calculator.insertMinus();
+    calculator.insertDigit(4);
+
+    assertEquals("-4",calculator.output());
+  }
   @Test
   public void when_evaluteAndThenAddNegativeNumber_should_sumOfTwoNegatives(){
     calculator.insertDigit(9);

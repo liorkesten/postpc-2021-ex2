@@ -16,14 +16,14 @@ import javax.script.ScriptEngineManager;
 public class SimpleCalculatorImpl implements SimpleCalculator {
   private static final Set<String> OPERATORS = new HashSet<String>() {{
     add("+");
-    add("_");
+    add("-");
   }};
   //Engine for eval function
   private static final ScriptEngine engine = new ScriptEngineManager().getEngineByName("js");
 
-  private final List<String> history = new ArrayList<>();
-  private final List<Integer> equalsIndexes = new Stack<>();
-  private final List<Integer> lastCalculatedNumber = new Stack<>();
+  private List<String> history = new ArrayList<>();
+  private List<Integer> equalsIndexes = new Stack<>();
+  private List<Integer> lastCalculatedNumber = new Stack<>();
   private boolean isAlreadyCalculated = false;
   // todo: add fields as needed
   public SimpleCalculatorImpl(){
@@ -47,7 +47,7 @@ public class SimpleCalculatorImpl implements SimpleCalculator {
     if (digit < 0 || digit >9){
       throw new IllegalArgumentException("Digit must be between 0-9");
     }
-    if (isEmpty()){
+    if (isEmpty() || containsOnlyOperator()){
       // Change first item to empty string to prevent case of "02+4" --> "2+4"
       history.set(0,"");
     }
@@ -123,6 +123,10 @@ public class SimpleCalculatorImpl implements SimpleCalculator {
   public Serializable saveState() {
     CalculatorState state = new CalculatorState();
     // todo: insert all data to the state, so in the future we can load from this state
+    state.equalsIndexesState = new ArrayList<>(equalsIndexes);
+    state.lastCalculatedNumberState = new ArrayList<>(lastCalculatedNumber);
+    state.historyState = new ArrayList<>(history);
+    state.isAlreadyCalculatedState = isAlreadyCalculated;
     return state;
   }
 
@@ -133,6 +137,10 @@ public class SimpleCalculatorImpl implements SimpleCalculator {
     }
     CalculatorState casted = (CalculatorState) prevState;
     // todo: use the CalculatorState to load
+    history = new ArrayList<>(casted.historyState);
+    lastCalculatedNumber = new ArrayList<>(casted.lastCalculatedNumberState);
+    equalsIndexes = new ArrayList<>(casted.equalsIndexesState);
+    isAlreadyCalculated = casted.isAlreadyCalculatedState;
   }
 
   private boolean isEmpty(){
@@ -159,6 +167,13 @@ public class SimpleCalculatorImpl implements SimpleCalculator {
     }
   }
 
+  private boolean containsOnlyOperator(){
+    if (!isEmpty() && history.size() == 2 && isLastItemInHistoryIsOperator()){
+      return true;
+    }
+    return false;
+  }
+
   private static class CalculatorState implements Serializable {
     /*
     TODO: add fields to this class that will store the calculator state
@@ -168,9 +183,16 @@ public class SimpleCalculatorImpl implements SimpleCalculator {
     - ArrayList<> where the type is a primitive or a String
     - HashMap<> where the types are primitives or a String
      */
-    //TODO Ask Ream if this class should not be static - how can you state static class?
-//    private final List<String> historyState = new ArrayList<>(history);
-    private final List<Integer> equalsIndexesState = new Stack<>();
-    private final List<Integer> lastCalculatedNumberState = new Stack<>();
+    private List<String> historyState;
+    private List<Integer> equalsIndexesState;
+    private List<Integer> lastCalculatedNumberState;
+    private boolean isAlreadyCalculatedState;
+
+    public CalculatorState(){
+      historyState = new ArrayList<>();
+      equalsIndexesState = new Stack<>();
+      lastCalculatedNumberState = new Stack<>();
+      isAlreadyCalculatedState = false;
+    }
   }
 }
